@@ -13,60 +13,42 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
-struct graph_bellman_ford {
-	const ll INF = 1e14;
+struct graph_dijkstra {
+	const ll INF = 1e16;
 	int n;
-	vector <tuple <int, int, ll>> edges;
-	vector <ll> dist;
-	vector <int> reach, reach2;
-	vector <vector <int>> g, g2;
+	vector <vector <pair <ll, int>>> g;
+	vector <int> vis;
+	vector <ll> dist, dist2;
 	void init (int s) {
 		n = s;
-		dist.assign(n, -INF);
-		reach.assign(n, 0);
-		reach2.assign(n, 0);
 		g.resize(n);
-		g2.resize(n);
-		edges.clear();
+		vis.assign(n, 0);
+		dist.assign(n, INF);
+		dist2.assign(n, INF);
 	}
-	void add_edge (int u, int v, ll w) {
-		edges.push_back({u, v, w});
-		g[u].push_back(v);
-		g2[v].push_back(u);
-	}
-	void dfs (int u) {
-		reach[u] = 1;
-		for (int v: g[u]) {
-			if (! reach[v]) {
-				dfs(v);
-			}
-		}
-	}
-	void dfs2 (int u) {
-		reach2[u] = 1;
-		for (int v: g2[u]) {
-			if (! reach2[v]) {
-				dfs2(v);
-			}
-		}
+	void add_edge (int a, int b, ll c) {
+		g[a].push_back({c, b});
 	}
 	void run() {
-		dfs(0);
-		dfs2(n - 1);
-		dist[0] = 0;
-		for (int it = 1; it <= n; it ++) {
-			for (tuple <int, int, ll> e: edges) {
-				int u, v;
-				ll w;
-				tie(u, v, w) = e;
-				if (dist[v] < dist[u] + w) {
-					if (it == n && reach[v] && reach2[v]) {
-						dist[n - 1] = -1;
-						return;
-					}
-					else {
-						dist[v] = dist[u] + w;
-					}
+		priority_queue <pair <ll, int>, vector <pair <ll, int>>, greater <pair <ll, int>>> pq;
+		pq.push({0, 0});
+		dist[0] = dist2[0] = 0;
+		while (! pq.empty()) {
+			pair <ll, int> u = pq.top();
+			pq.pop();
+			if (vis[u.second]) continue;
+			vis[u.second] = 1;
+			for (pair <ll, int> v: g[u.second]) {
+				if (dist2[u.second] + v.first < dist2[v.second]) {
+					dist2[v.second] = dist2[u.second] + v.first;
+					pq.push({dist2[v.second], v.second});
+				}
+				if (dist[u.second] + v.first / 2 < dist2[v.second]) {
+					dist2[v.second] = dist[u.second] + v.first / 2;
+					pq.push({dist2[v.second], v.second});
+				}
+				if (dist[u.second] + v.first < dist[v.second]) {
+					dist[v.second] = dist[u.second] + v.first;
 				}
 			}
 		}
@@ -75,7 +57,7 @@ struct graph_bellman_ford {
 int main() {
 	int n, m;
 	cin >> n >> m;
-	graph_bellman_ford z;
+	graph_dijkstra z;
 	z.init(n);
 	while (m --) {
 		int a, b;
@@ -85,5 +67,5 @@ int main() {
 		z.add_edge(a, b, c);
 	}
 	z.run();
-	cout << z.dist[n - 1] << endl;
+	cout << z.dist2[n - 1] << endl;
 }

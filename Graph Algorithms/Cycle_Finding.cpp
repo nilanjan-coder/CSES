@@ -15,61 +15,55 @@ mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
 struct graph_bellman_ford {
 	const ll INF = 1e14;
-	int n;
+	int n, cyc;
 	vector <tuple <int, int, ll>> edges;
 	vector <ll> dist;
-	vector <int> reach, reach2;
-	vector <vector <int>> g, g2;
+	vector <int> par, vis;
 	void init (int s) {
 		n = s;
-		dist.assign(n, -INF);
-		reach.assign(n, 0);
-		reach2.assign(n, 0);
-		g.resize(n);
-		g2.resize(n);
+		cyc = -1;
+		dist.assign(n, INF);
 		edges.clear();
+		par.resize(n);
+		vis.assign(n, 0);
 	}
 	void add_edge (int u, int v, ll w) {
 		edges.push_back({u, v, w});
-		g[u].push_back(v);
-		g2[v].push_back(u);
-	}
-	void dfs (int u) {
-		reach[u] = 1;
-		for (int v: g[u]) {
-			if (! reach[v]) {
-				dfs(v);
-			}
-		}
-	}
-	void dfs2 (int u) {
-		reach2[u] = 1;
-		for (int v: g2[u]) {
-			if (! reach2[v]) {
-				dfs2(v);
-			}
-		}
 	}
 	void run() {
-		dfs(0);
-		dfs2(n - 1);
 		dist[0] = 0;
-		for (int it = 1; it <= n; it ++) {
+		for (int it = 1; it <= 2 * n; it ++) {
 			for (tuple <int, int, ll> e: edges) {
 				int u, v;
 				ll w;
 				tie(u, v, w) = e;
-				if (dist[v] < dist[u] + w) {
-					if (it == n && reach[v] && reach2[v]) {
-						dist[n - 1] = -1;
+				if (dist[v] > dist[u] + w) {
+					if (it == 2 * n) {
+						cyc = par[v];
 						return;
 					}
 					else {
 						dist[v] = dist[u] + w;
 					}
+					par[v] = u;
 				}
 			}
 		}
+	}
+	vector <int> neg_cyc() {
+		vector <int> ans;
+		int u = cyc;
+		while (! vis[u]) {
+			ans.push_back(u);
+			vis[u] = 1;
+			u = par[u];
+		}
+		ans.push_back(u);
+		reverse (ans.begin(), ans.end());
+		while (ans.back() - u) {
+			ans.pop_back();
+		}
+		return ans;
 	}
 };
 int main() {
@@ -85,5 +79,15 @@ int main() {
 		z.add_edge(a, b, c);
 	}
 	z.run();
-	cout << z.dist[n - 1] << endl;
+	if (z.cyc == -1) {
+		cout << "NO" << endl;
+	}
+	else {
+		vector <int> ans = z.neg_cyc();
+		cout << "YES" << endl;
+		for (int x: ans) {
+			cout << x + 1 << " ";
+		}
+		cout << endl;
+	}
 }
