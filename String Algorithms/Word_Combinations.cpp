@@ -35,47 +35,38 @@ struct string_trie {
 		ends[pos] = 1;
 	}
 };
-struct ways_to_form_string_from_words {
-	string s;
-	int n;
-	string_trie t;
-	vector <ll> dp;
-	void init() {
-		t.init();
-		cin >> s;
-		n = s.length();
-		int k;
-		cin >> k;
-		dp.assign(n, -1);
-		while (k --) {
-			string p;
-			cin >> p;
-			t.add(p); 
-		}
+ll ways (int idx, int n, string &s, string_trie &z, vector <ll> &dp) {
+	if (idx == n) {
+		return 1;
 	}
-	ll ways (int idx) {
-		if (idx == n) {
-			return 1;
-		}
-		if (dp[idx] + 1) {
-			return dp[idx];
-		}
-		dp[idx] = 0;
-		int pos = 0;
-		for (int i = idx; i < n; i ++) {
-			if (t.trie[pos][s[i] - 'a'] == -1) {
-				break;
-			}
-			if (t.ends[t.trie[pos][s[i] - 'a']]) {
-				dp[idx] = (dp[idx] + ways(i + 1)) % MOD;
-			}
-			pos = t.trie[pos][s[i] - 'a'];
-		}
+	if (dp[idx] + 1) {
 		return dp[idx];
 	}
-};
+	dp[idx] = 0;
+	int pos = 0;
+	for (int i = idx; i < n; i ++) {
+		if (z.trie[pos][s[i] - 'a'] == -1) {
+			break;
+		}
+		if (z.ends[z.trie[pos][s[i] - 'a']]) {
+			dp[idx] = (dp[idx] + ways(i + 1, n, s, z, dp)) % MOD;
+		}
+		pos = z.trie[pos][s[i] - 'a'];
+	}
+	return dp[idx];
+}
 int main() {
-	ways_to_form_string_from_words x;
-	x.init();
-	cout << x.ways(0) << endl;
+	string s;
+	cin >> s;
+	int n = s.length(), k;
+	cin >> k;
+	string_trie z;
+	z.init();
+	while (k --) {
+		string t;
+		cin >> t;
+		z.add(t);
+	}
+	vector <ll> dp(n, -1);
+	cout << ways(0, n, s, z, dp) << endl;
 }

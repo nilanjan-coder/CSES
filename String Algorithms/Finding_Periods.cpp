@@ -2,6 +2,7 @@
 //Fast IO: Use scanf and printf
 //For printing real values when error <= 10 ^ (-x), do: cout << fixed << setprecision(x + 1) << val << endl;
 #include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 #include <bits/stdc++.h>
 using namespace __gnu_pbds;
 using namespace std;
@@ -10,33 +11,101 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 #define dbg(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgv(__VA_ARGS__);
 #define dbgr(...) dbgr(__VA_ARGS__); cout << endl;
 #define dbgm(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgr(__VA_ARGS__);
-using indexed_set = tree <pair <int, int>, null_type, less <pair <int, int>>, rb_tree_tag, tree_order_statistics_node_update>;
+using ordered_set = tree<pair<int,int>,null_type,less<pair<int,int>>,rb_tree_tag,tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
-int main() {
-	int n, q;
-	cin >> n >> q;
-	vector <int> p(n);
-	indexed_set s;
-	for (int i = 0; i < n; i ++) {
-		cin >> p[i];
-		s.insert({p[i], i});
+struct string_hashing1 {
+	const ll a = 1e9 + 5, b = 1e9 + 7;
+	vector <ll> h, p;
+	void init (string s) {
+		int n = s.length();
+		h.resize(n);
+		p.resize(n);
+		h[0] = s[0];
+		p[0] = 1;
+		for (int i = 1; i < n; i ++) {
+			h[i] = (h[i - 1] * a % b + s[i]) % b;
+			p[i] = p[i - 1] * a % b;
+		}
 	}
-	while (q --) {
-		char t;
-		cin >> t;
-		if (t == '!') {
-			int k, x;
-			cin >> k >> x;
-			-- k;
-			s.erase({p[k], k});
-			p[k] = x;
-			s.insert({x, k});
+	ll hash (int i, int j) {
+		if (i == 0) {
+			return h[j];
 		}
 		else {
-			int a, b;
-			cin >> a >> b;
-			cout << s.order_of_key({b, n}) - s.order_of_key({a - 1, n}) << endl;
+			return (h[j] - h[i - 1] * p[j - i + 1] % b + b) % b;
 		}
 	}
+};
+struct string_hashing2 {
+	const ll a = 1e9 + 5, b = 1e9 + 9;
+	vector <ll> h, p;
+	void init (string s) {
+		int n = s.length();
+		h.resize(n);
+		p.resize(n);
+		h[0] = s[0];
+		p[0] = 1;
+		for (int i = 1; i < n; i ++) {
+			h[i] = (h[i - 1] * a % b + s[i]) % b;
+			p[i] = p[i - 1] * a % b;
+		}
+	}
+	ll hash (int i, int j) {
+		if (i == 0) {
+			return h[j];
+		}
+		else {
+			return (h[j] - h[i - 1] * p[j - i + 1] % b + b) % b;
+		}
+	}
+};
+int main() {
+	string s;
+	cin >> s;
+	int n = s.length();
+	string_hashing1 z1;
+	string_hashing2 z2;
+	z1.init(s);
+	z2.init(s);
+	int ans = 0;
+	for (int len = 1; len <= n; len ++) {
+		bool check = true;
+		int i;
+		for (i = len; i + len - 1 < n; i += len) {
+			if (z1.hash(0, len - 1) != z1.hash(i, i + len - 1) || z2.hash(0, len - 1) != z2.hash(i, i + len - 1)) {
+				check = false;
+				break;
+			}
+		}
+		if (check) {
+			if (i == n) {
+				ans = len;
+				break;
+			}
+			else {
+				int len0 = len;
+				len = n - i;
+				if (z1.hash(0, len - 1) == z1.hash(i, i + len - 1) && z2.hash(0, len - 1) == z2.hash(i, i + len - 1)) {
+					ans = len0;
+					break;
+				}
+				len = len0;
+			}
+		}
+	}
+	int mul = 1;
+	while (ans * mul < n) {
+		cout << ans * mul << " ";
+		++ mul;
+	}
+	-- mul;
+	ans *= mul;
+	for (int len = ans + 1; len <= n - 1; len ++) {
+		int len0 = n - len;
+		if (z1.hash(0, len0 - 1) == z1.hash(n - len0, n - 1) && z2.hash(0, len0 - 1) == z2.hash(n - len0, n - 1)) {
+			cout << len << " ";
+		}
+	}
+	cout << n << endl;
 }

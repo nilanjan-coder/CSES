@@ -10,33 +10,25 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 #define dbg(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgv(__VA_ARGS__);
 #define dbgr(...) dbgr(__VA_ARGS__); cout << endl;
 #define dbgm(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgr(__VA_ARGS__);
-using indexed_set = tree <pair <int, int>, null_type, less <pair <int, int>>, rb_tree_tag, tree_order_statistics_node_update>;
+using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
+bool cmp (pair <int, int> p1, pair <int, int> p2) {
+	return p1.second < p2.second;
+}
 int main() {
-	int n, q;
-	cin >> n >> q;
-	vector <int> p(n);
-	indexed_set s;
+	int n, cnt = 0, end = 0;
+	cin >> n;
+	vector <pair <int, int>> a(n);
 	for (int i = 0; i < n; i ++) {
-		cin >> p[i];
-		s.insert({p[i], i});
+		cin >> a[i].first >> a[i].second;
 	}
-	while (q --) {
-		char t;
-		cin >> t;
-		if (t == '!') {
-			int k, x;
-			cin >> k >> x;
-			-- k;
-			s.erase({p[k], k});
-			p[k] = x;
-			s.insert({x, k});
-		}
-		else {
-			int a, b;
-			cin >> a >> b;
-			cout << s.order_of_key({b, n}) - s.order_of_key({a - 1, n}) << endl;
+	sort(a.begin(), a.end(), cmp);
+	for (int i = 0; i < n; i ++) {
+		if (a[i].first >= end) {
+			++ cnt;
+			end = a[i].second;
 		}
 	}
+	cout << cnt << endl;
 }

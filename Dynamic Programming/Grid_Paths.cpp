@@ -10,33 +10,42 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 #define dbg(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgv(__VA_ARGS__);
 #define dbgr(...) dbgr(__VA_ARGS__); cout << endl;
 #define dbgm(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgr(__VA_ARGS__);
-using indexed_set = tree <pair <int, int>, null_type, less <pair <int, int>>, rb_tree_tag, tree_order_statistics_node_update>;
+using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
+const ll MOD = 1e9 + 7;
 int main() {
-	int n, q;
-	cin >> n >> q;
-	vector <int> p(n);
-	indexed_set s;
+	int n;
+	cin >> n;
+	vector <vector <char>> a(n, vector <char> (n));
 	for (int i = 0; i < n; i ++) {
-		cin >> p[i];
-		s.insert({p[i], i});
+		for (int j = 0; j < n; j ++) {
+			cin >> a[i][j];
+		}
 	}
-	while (q --) {
-		char t;
-		cin >> t;
-		if (t == '!') {
-			int k, x;
-			cin >> k >> x;
-			-- k;
-			s.erase({p[k], k});
-			p[k] = x;
-			s.insert({x, k});
+	vector <vector <ll>> paths(n, vector <ll> (n, 0));
+	for (int j = 0; j < n; j ++) {
+		if (a[0][j] == '*') {
+			break;
 		}
 		else {
-			int a, b;
-			cin >> a >> b;
-			cout << s.order_of_key({b, n}) - s.order_of_key({a - 1, n}) << endl;
+			paths[0][j] = 1;
 		}
 	}
+	for (int i = 0; i < n; i ++) {
+		if (a[i][0] == '*') {
+			break;
+		}
+		else {
+			paths[i][0] = 1;
+		}
+	}
+	for (int i = 1; i < n; i ++) {
+		for (int j = 1; j < n; j ++) {
+			if (a[i][j] == '.') {
+				paths[i][j] = (paths[i][j - 1] + paths[i - 1][j]) % MOD;
+			}
+		}
+	}
+	cout << paths[n - 1][n - 1] << endl;
 }

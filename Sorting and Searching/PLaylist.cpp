@@ -10,33 +10,30 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 #define dbg(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgv(__VA_ARGS__);
 #define dbgr(...) dbgr(__VA_ARGS__); cout << endl;
 #define dbgm(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgr(__VA_ARGS__);
-using indexed_set = tree <pair <int, int>, null_type, less <pair <int, int>>, rb_tree_tag, tree_order_statistics_node_update>;
+using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
 int main() {
-	int n, q;
-	cin >> n >> q;
-	vector <int> p(n);
-	indexed_set s;
-	for (int i = 0; i < n; i ++) {
-		cin >> p[i];
-		s.insert({p[i], i});
+	int n;
+	cin >> n;
+	vector <int> a(n + 1), dp(n + 1);
+	for (int i = 1; i <= n; i ++) {
+		cin >> a[i];
 	}
-	while (q --) {
-		char t;
-		cin >> t;
-		if (t == '!') {
-			int k, x;
-			cin >> k >> x;
-			-- k;
-			s.erase({p[k], k});
-			p[k] = x;
-			s.insert({x, k});
+	map <int, int> idx;
+	int ans = 0;
+	dp[1] = 1;
+	idx[a[1]] = 1;
+	ans = 1;
+	for (int i = 2; i <= n; i ++) {
+		if (dp[i - 1] > idx[a[i]]) {
+			dp[i] = dp[i - 1];
 		}
 		else {
-			int a, b;
-			cin >> a >> b;
-			cout << s.order_of_key({b, n}) - s.order_of_key({a - 1, n}) << endl;
+			dp[i] = idx[a[i]] + 1;
 		}
+		ans = max(ans, i - dp[i] + 1);
+		idx[a[i]] = i;
 	}
+	cout << ans << endl;
 }
