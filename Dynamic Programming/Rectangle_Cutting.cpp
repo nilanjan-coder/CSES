@@ -13,52 +13,27 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
-const ll MOD = 1e9 + 7;
+const int INF = 2e9 + 5;
 int main() {
-	int n, m;
-	cin >> n >> m;
-	vector <int> x(n);
-	for (int i = 0; i < n; i ++) {
-		cin >> x[i];
-	}
-	vector <vector <ll>> ways(n, vector <ll> (m + 1, 0));
-	int i = 0;
-	if (x[i]) {
-		ways[i][x[i]] = 1;
-	}
-	else {
-		for (int j = 1; j <= m; j ++) {
-			ways[i][j] = 1;
-		}
-	}
-	for (i = 1; i < n; i ++) {
-		if (x[i]) {
-			int j = x[i];
-			ways[i][j] += ways[i - 1][j];
-			if (j - 1 >= 1) {
-				ways[i][j] += ways[i - 1][j - 1];
+	int a, b;
+	cin >> a >> b;
+	vector <vector <int>> dp(a + 1, vector <int> (b + 1));
+	for (int i = 1; i <= a; i ++) {
+		for (int j = 1; j <= b; j ++) {
+			if (i == j) {
+				dp[i][j] = 0;
 			}
-			if (j + 1 <= m) {
-				ways[i][j] += ways[i - 1][j + 1];
-			}
-			ways[i][j] %= MOD;
-		}
-		else {
-			for (int j = 1; j <= m; j ++) {
-				ways[i][j] += ways[i - 1][j];
-				if (j - 1 >= 1) {
-					ways[i][j] += ways[i - 1][j - 1];
+			else {
+				int nin = INF;
+				for (int i0 = 1; i0 < i; i0 ++) {
+					nin = min(nin, dp[i0][j] + dp[i - i0][j]);
 				}
-				if (j + 1 <= m) {
-					ways[i][j] += ways[i - 1][j + 1];
+				for (int j0 = 1; j0 < j; j0 ++) {
+					nin = min(nin, dp[i][j0] + dp[i][j - j0]);
 				}
-				ways[i][j] %= MOD;
+				dp[i][j] = nin + 1;
 			}
 		}
 	}
-	ll ans = 0;
-	for (int j = 1; j <= m; j ++) {
-		ans = (ans + ways[n - 1][j]) % MOD;
-	}
-	cout << ans << endl;
+	cout << dp[a][b] << endl;
 }

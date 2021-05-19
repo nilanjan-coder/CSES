@@ -2,6 +2,7 @@
 //Fast IO: Use scanf and printf
 //For printing real values when error <= 10 ^ (-x), do: cout << fixed << setprecision(x + 1) << val << endl;
 #include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 #include <bits/stdc++.h>
 using namespace __gnu_pbds;
 using namespace std;
@@ -10,55 +11,97 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 #define dbg(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgv(__VA_ARGS__);
 #define dbgr(...) dbgr(__VA_ARGS__); cout << endl;
 #define dbgm(...) cout << "[" << #__VA_ARGS__ << "]: "; dbgr(__VA_ARGS__);
-using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
+using ordered_set = tree<pair<int,int>,null_type,less<pair<int,int>>,rb_tree_tag,tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
-const ll MOD = 1e9 + 7;
-int main() {
-	int n, m;
-	cin >> n >> m;
-	vector <int> x(n);
-	for (int i = 0; i < n; i ++) {
-		cin >> x[i];
-	}
-	vector <vector <ll>> ways(n, vector <ll> (m + 1, 0));
-	int i = 0;
-	if (x[i]) {
-		ways[i][x[i]] = 1;
-	}
-	else {
-		for (int j = 1; j <= m; j ++) {
-			ways[i][j] = 1;
+struct string_hashing1 {
+	const ll a = 1e9 + 5, b = 1e9 + 7;
+	vector <ll> h, p;
+	void init (string s) {
+		int n = s.length();
+		h.resize(n);
+		p.resize(n);
+		h[0] = s[0];
+		p[0] = 1;
+		for (int i = 1; i < n; i ++) {
+			h[i] = (h[i - 1] * a % b + s[i]) % b;
+			p[i] = p[i - 1] * a % b;
 		}
 	}
-	for (i = 1; i < n; i ++) {
-		if (x[i]) {
-			int j = x[i];
-			ways[i][j] += ways[i - 1][j];
-			if (j - 1 >= 1) {
-				ways[i][j] += ways[i - 1][j - 1];
-			}
-			if (j + 1 <= m) {
-				ways[i][j] += ways[i - 1][j + 1];
-			}
-			ways[i][j] %= MOD;
+	ll hash (int i, int j) {
+		if (i == 0) {
+			return h[j];
 		}
 		else {
-			for (int j = 1; j <= m; j ++) {
-				ways[i][j] += ways[i - 1][j];
-				if (j - 1 >= 1) {
-					ways[i][j] += ways[i - 1][j - 1];
-				}
-				if (j + 1 <= m) {
-					ways[i][j] += ways[i - 1][j + 1];
-				}
-				ways[i][j] %= MOD;
-			}
+			return (h[j] - h[i - 1] * p[j - i + 1] % b + b) % b;
 		}
 	}
-	ll ans = 0;
-	for (int j = 1; j <= m; j ++) {
-		ans = (ans + ways[n - 1][j]) % MOD;
+};
+struct string_hashing2 {
+	const ll a = 1e9 + 5, b = 1e9 + 9;
+	vector <ll> h, p;
+	void init (string s) {
+		int n = s.length();
+		h.resize(n);
+		p.resize(n);
+		h[0] = s[0];
+		p[0] = 1;
+		for (int i = 1; i < n; i ++) {
+			h[i] = (h[i - 1] * a % b + s[i]) % b;
+			p[i] = p[i - 1] * a % b;
+		}
 	}
-	cout << ans << endl;
+	ll hash (int i, int j) {
+		if (i == 0) {
+			return h[j];
+		}
+		else {
+			return (h[j] - h[i - 1] * p[j - i + 1] % b + b) % b;
+		}
+	}
+};
+int main() {
+	string s;
+	cin >> s;
+	string t = s;
+	reverse(t.begin(), t.end());
+	int n = s.length();
+	string_hashing1 z1, rz1;
+	string_hashing2 z2, rz2;
+	z1.init(s);
+	z2.init(s);
+	rz1.init(t);
+	rz2.init(t);
+	pair <int, int> ans = {-1, 0};
+	for (int i = 0; i < n; i ++) {
+		int l = 0, r = min(i + 1, n - i) + 1;
+		while (r > l + 1) {
+			int m = (l + r) / 2, j = n - 1 - i;
+			if (z1.hash(i, i + m - 1) == rz1.hash(j, j + m - 1) && z2.hash(i, i + m - 1) == rz2.hash(j, j + m - 1)) {
+				l = m;
+			}
+			else {
+				r = m;
+			}
+		}
+		if (ans.second < 2 * l - 1) {
+			ans = {i - l + 1, 2 * l - 1};
+		}
+	}
+	for (int i = 1; i < n; i ++) {
+		int l = 0, r = min(i, n - i) + 1;
+		while (r > l + 1) {
+			int m = (l + r) / 2, j = n - i;
+			if (z1.hash(i, i + m - 1) == rz1.hash(j, j + m - 1) && z2.hash(i, i + m - 1) == rz2.hash(j, j + m - 1)) {
+				l = m;
+			}
+			else {
+				r = m;
+			}
+		}
+		if (ans.second < 2 * l) {
+			ans = {i - l, 2 * l};
+		}
+	}
+	cout << s.substr(ans.first, ans.second) << endl;
 }

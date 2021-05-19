@@ -15,50 +15,28 @@ mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
 const ll MOD = 1e9 + 7;
 int main() {
-	int n, m;
-	cin >> n >> m;
-	vector <int> x(n);
-	for (int i = 0; i < n; i ++) {
-		cin >> x[i];
-	}
-	vector <vector <ll>> ways(n, vector <ll> (m + 1, 0));
-	int i = 0;
-	if (x[i]) {
-		ways[i][x[i]] = 1;
-	}
-	else {
-		for (int j = 1; j <= m; j ++) {
-			ways[i][j] = 1;
-		}
-	}
-	for (i = 1; i < n; i ++) {
-		if (x[i]) {
-			int j = x[i];
-			ways[i][j] += ways[i - 1][j];
-			if (j - 1 >= 1) {
-				ways[i][j] += ways[i - 1][j - 1];
-			}
-			if (j + 1 <= m) {
-				ways[i][j] += ways[i - 1][j + 1];
-			}
-			ways[i][j] %= MOD;
-		}
-		else {
-			for (int j = 1; j <= m; j ++) {
-				ways[i][j] += ways[i - 1][j];
-				if (j - 1 >= 1) {
-					ways[i][j] += ways[i - 1][j - 1];
-				}
-				if (j + 1 <= m) {
-					ways[i][j] += ways[i - 1][j + 1];
-				}
-				ways[i][j] %= MOD;
-			}
-		}
-	}
-	ll ans = 0;
+	string s, t;
+	cin >> s >> t;
+	int n = s.length(), m = t.length();
+	s = '#' + s;
+	t = '#' + t;
+	vector <vector <int>> dist(n + 1, vector <int> (m + 1));
+	dist[0][0] = 0;
 	for (int j = 1; j <= m; j ++) {
-		ans = (ans + ways[n - 1][j]) % MOD;
+		dist[0][j] = j;
 	}
-	cout << ans << endl;
+	for (int i = 1; i <= n; i ++) {
+		dist[i][0] = i;
+	}
+	for (int i = 1; i <= n; i ++) {
+		for (int j = 1; j <= m; j ++) {
+			if (s[i] == t[j]) {
+				dist[i][j] = dist[i - 1][j - 1];
+			}
+			else {
+				dist[i][j] = min({dist[i - 1][j], dist[i][j - 1], dist[i - 1][j - 1]}) + 1;
+			}
+		}
+	}
+	cout << dist[n][m] << endl;
 }
