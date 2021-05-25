@@ -13,36 +13,44 @@ template<typename T> long long SIZE(T (&t)){ return t.size(); } template<typenam
 using indexed_set = tree <int, null_type, less <int>, rb_tree_tag, tree_order_statistics_node_update>;
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 using ll = long long;
-const int LIM = 1e5;
+const ll MOD = 1e9 + 7;
+ll bin_exp (ll x, ll y) {
+	ll ans = 1;
+	while (y) {
+		if (y & 1) {
+			ans = (ans * x) % MOD;
+		}
+		x = (x * x) % MOD;
+		y /= 2;
+	}
+	return ans;
+}
+ll inv (ll x) {
+	return bin_exp(x, MOD - 2);
+}
+ll divi (ll a, ll b) {
+	return (a * inv(b)) % MOD;
+}
 int main() {
 	int n;
 	cin >> n;
-	vector <int> a(n + 1);
-	a[0] = 0;
-	for (int i = 1; i <= n; i ++) {
-		cin >> a[i];
+	if (n * (n + 1) % 4) {
+		cout << 0 << endl;
 	}
-	vector <vector <bool>> possible(n + 1, vector <bool> (LIM + 1, 0));
-	for (int i = 0; i <= n; i ++) {
-		possible[i][0] = 1;
-	}
-	for (int i = 1; i <= n; i ++) {
-		for (int j = 1; j <= LIM; j ++) {
-			possible[i][j] = possible[i - 1][j];
-			if (j >= a[i]) {
-				possible[i][j] = (possible[i][j] | possible[i - 1][j - a[i]]);
+	else {
+		int s = n * (n + 1) / 4;
+		vector <vector <ll>> ways(n + 1, vector <ll> (s + 1, 0));
+		for (int i = 0; i <= n; i ++) {
+			ways[i][0] = 1;
+		}
+		for (int i = 1; i <= n; i ++) {
+			for (int j = 1; j <= s; j ++) {
+				ways[i][j] = ways[i - 1][j];
+				if (j >= i) {
+					ways[i][j] = (ways[i][j] + ways[i - 1][j - i]) % MOD;
+				}
 			}
 		}
+		cout << divi(ways[n][s], 2) << endl;
 	}
-	vector <int> sums;
-	for (int j = 1; j <= LIM; j ++) {
-		if (possible[n][j]) {
-			sums.push_back(j);
-		}
-	}
-	cout << sums.size() << endl;
-	for (int sum: sums) {
-		cout << sum << " ";
-	}
-	cout << endl;
 }
